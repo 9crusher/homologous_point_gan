@@ -1,6 +1,8 @@
 import numpy as np
 from point_processing import add_gaussian, place_point
 import matplotlib.pyplot as plt
+import cv2
+import pandas as pd
 import os
 
 
@@ -36,3 +38,40 @@ def save_single_sample(fixed_image, moving_image, fixed_point, out_point, output
     moving_img_with_gaussian[moving_img_with_gaussian > 255] = 255
     moving_img_with_gaussian = moving_img_with_gaussian.astype(np.uint8)
     plt.imsave(output_dir + 'moving.png', moving_img_with_gaussian, cmap='gray')
+
+
+def process_single_slide(fixed_file_path, moving_file_path, control_points_file_path, slide_id, target_parent_dir='./data/histmri/'):
+    '''
+    @param fixed_file_path: The complete path to the fixed image
+    @param moving_file_path: The complete path to the moving image
+    @param control_points_file_path: The complete path to the control points csv
+        The file should be a csv with four cols (hist_x, hist_y, mri_x, mri_y)
+    @param slide_id: A string to identify the slide
+    @param target_parent_dir: The parent directory in which to store the output data
+
+    The control points are stored as (x, y) we need to convert them to row, col
+    '''
+
+    points = pd.read_csv(control_points_file_path, header=None).to_numpy().astype(int)
+    moving_points = points[:, :2]
+    fixed_points = points[:, 2:]
+
+
+    fixed_image = cv2.imread(fixed_file_path, cv2.IMREAD_UNCHANGED)
+    moving_image = cv2.imread(moving_file_path, cv2.IMREAD_UNCHANGED)
+
+    if len(fixed_image.shape) == 3:
+        fixed_image = fixed_image[:, :, -1].astype(np.uint8)
+
+    if len(moving_image.shape) == 3:
+        moving_image = moving_image[:, :, -1].astype(np.uint8)
+
+    for point_index in range(len(points)):
+        point_dir_name = '{0}{1}_{2}/'.format(target_parent_dir, slide_id, point_index)
+        save_single_sample(fixed_image, moving_image, fixed_points[point_index], moving_points[point_index], point_dir_name)
+        
+
+
+
+    
+
