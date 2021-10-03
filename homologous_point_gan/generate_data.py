@@ -15,6 +15,7 @@ def save_single_sample(fixed_image, moving_image, fixed_point, out_point, output
     @param output_dir: The directory to write results
     Saves:
         gan_in.npy (Three-layer float32 np file containing layer 0 = fixed image layer 1 = moving image layer 2 gaussian single-point on fixed)
+        gan_out.npy (Single layer (2D) numpy file containing the appropriate output for the corresponding input. gaussian circle at homologous point) 
         fixed.png (A png showing the fixed image with a gaussian circle over the fixed point)
         moving.png (A png showing the moving image with a gaussian over the moving point)
     '''
@@ -38,6 +39,9 @@ def save_single_sample(fixed_image, moving_image, fixed_point, out_point, output
     moving_img_with_gaussian[moving_img_with_gaussian > 255] = 255
     moving_img_with_gaussian = moving_img_with_gaussian.astype(np.uint8)
     plt.imsave(output_dir + 'moving.png', moving_img_with_gaussian, cmap='gray')
+
+    # Save moving point npy file
+    np.save(output_dir + "gan_out.npy", moving_with_point[:, :, -1].astype(np.float32))
 
 
 def process_single_slide(fixed_file_path, moving_file_path, control_points_file_path, slide_id, target_parent_dir='./data/histmri/'):
